@@ -1,11 +1,25 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeftRight, Copy, Delete, Space, BookOpen, Users, MessageCircle } from "lucide-react"
-import { useState } from "react"
-import { ThemeToggle } from "@/components/theme-toggle"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  ArrowLeftRight,
+  Copy,
+  Delete,
+  Space,
+  BookOpen,
+  Users,
+  MessageCircle,
+} from "lucide-react";
+import { useState } from "react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 // Guttin alphabet mapping
 const guttinAlphabet = [
@@ -35,7 +49,45 @@ const guttinAlphabet = [
   { letter: "X", symbol: "☓" },
   { letter: "Y", symbol: "Ү" },
   { letter: "Z", symbol: "ʒ" },
-]
+
+  // 🔄 Extended / alternate symbols seen in use:
+  { letter: "S", symbol: "ϟ" }, // alt S
+  { letter: "P", symbol: "ϸ" }, // alt P
+  { letter: "G", symbol: "ϭ" }, // alt G/Ch
+  { letter: "O", symbol: "σ" }, // alt O/E
+  { letter: "S", symbol: "ς" }, // final sigma = s
+  { letter: "R", symbol: "я" }, // lowercase/variant R
+];
+
+// const guttinToEnglish = [
+//   // a b c d σ f ϭ h i j k l m n o ϸ ϙ я ϟ t u v w x ү z
+//   { letter: "a", symbol: "a" },
+//   { letter: "b", symbol: "b" },
+//   { letter: "c", symbol: "c" },
+//   { letter: "d", symbol: "d" },
+//   { letter: "σ", symbol: "e" },
+//   { letter: "f", symbol: "f" },
+//   { letter: "ϭ", symbol: "g" },
+//   { letter: "h", symbol: "h" },
+//   { letter: "i", symbol: "i" },
+//   { letter: "j", symbol: "j" },
+//   { letter: "k", symbol: "k" },
+//   { letter: "l", symbol: "l" },
+//   { letter: "m", symbol: "m" },
+//   { letter: "n", symbol: "n" },
+//   { letter: "o", sumbol: "o" },
+//   { letter: "ϸ", symbol: "p" },
+//   { letter: "ϙ", symbol: "q" },
+//   { letter: "я", symbol: "r" },
+//   { letter: "ϟ", sumbol: "s" },
+//   { letter: "t", sumbol: "t" },
+//   { letter: "u", symbol: "u" },
+//   { letter: "v", symbol: "v" },
+//   { letter: "w", symbol: "w" },
+//   { letter: "x", symbol: "x" },
+//   { letter: "ү", suymbol: "y" },
+//   { letter: "z", symbol: "z" },
+// ];
 
 const guttinDictionary = {
   // Pronouns
@@ -112,83 +164,143 @@ const guttinDictionary = {
   want: { romanized: "doa", symbols: "∂○ʘ" },
   understand: { romanized: "si", symbols: "Ϟı" },
   speak: { romanized: "spek", symbols: "ϞϷΣ⋉" },
-}
+};
 
 function romanizedToSymbols(romanized: string): string {
   return romanized
     .split("")
     .map((char) => {
-      const found = guttinAlphabet.find((item) => item.letter.toLowerCase() === char.toLowerCase())
-      return found ? found.symbol : char
+      const found = guttinAlphabet.find(
+        (item) => item.letter.toLowerCase() === char.toLowerCase()
+      );
+      return found ? found.symbol : char;
     })
-    .join("")
+    .join("");
 }
 
 function GuttinTranslator() {
-  const [englishText, setEnglishText] = useState("")
-  const [guttinRomanized, setGuttinRomanized] = useState("")
-  const [guttinSymbols, setGuttinSymbols] = useState("")
-  const [translationDirection, setTranslationDirection] = useState<"en-to-guttin" | "guttin-to-en">("en-to-guttin")
+  const [englishText, setEnglishText] = useState("");
+  const [guttinRomanized, setGuttinRomanized] = useState("");
+  const [guttinSymbols, setGuttinSymbols] = useState("");
+  const [translationDirection, setTranslationDirection] = useState<
+    "en-to-guttin" | "guttin-to-en"
+  >("en-to-guttin");
+  const [language, setLanguage] = useState<"en" | "gu">("en");
 
-  const translateText = (text: string, direction: "en-to-guttin" | "guttin-to-en") => {
+  const translateText = (
+    text: string,
+    direction: "en-to-guttin" | "guttin-to-en"
+  ) => {
     if (!text.trim()) {
-      setGuttinRomanized("")
-      setGuttinSymbols("")
-      return
+      setGuttinRomanized("");
+      setGuttinSymbols("");
+      return;
     }
 
-    const lowerText = text.toLowerCase().trim()
+    const lowerText = text.toLowerCase().trim();
 
     if (direction === "en-to-guttin") {
-      // Try to find exact phrase match first
+      // Exact phrase match
       if (guttinDictionary[lowerText as keyof typeof guttinDictionary]) {
-        const translation = guttinDictionary[lowerText as keyof typeof guttinDictionary]
-        setGuttinRomanized(translation.romanized)
-        setGuttinSymbols(translation.symbols)
-        return
+        const translation =
+          guttinDictionary[lowerText as keyof typeof guttinDictionary];
+        setGuttinRomanized(translation.romanized);
+        setGuttinSymbols(translation.symbols);
+        return;
       }
 
-      // Try word by word translation
-      const words = lowerText.split(" ")
+      // Word by word fallback
+      const words = lowerText.split(" ");
       const translatedWords = words.map((word) => {
-        const translation = guttinDictionary[word as keyof typeof guttinDictionary]
-        return translation ? translation.romanized : word
-      })
+        const translation =
+          guttinDictionary[word as keyof typeof guttinDictionary];
+        return translation ? translation.romanized : word;
+      });
 
-      const romanized = translatedWords.join(" ")
-      setGuttinRomanized(romanized)
-      setGuttinSymbols(romanizedToSymbols(romanized))
+      const romanized = translatedWords.join(" ");
+      setGuttinRomanized(romanized);
+      setGuttinSymbols(romanizedToSymbols(romanized));
+    } else {
+      // 🔄 Guttin → English
+      const words = lowerText.split(" ");
+
+      const translatedWords = words.map((word) => {
+        // 1. Try match against dictionary romanized
+        const dictEntry = Object.entries(guttinDictionary).find(
+          ([, value]) => value.romanized.toLowerCase() === word
+        );
+
+        if (dictEntry) {
+          return dictEntry[0]; // English key
+        }
+
+        // 2. Try match against symbols
+        const dictBySymbols = Object.entries(guttinDictionary).find(
+          ([, value]) => value.symbols === word
+        );
+
+        if (dictBySymbols) {
+          return dictBySymbols[0]; // English key
+        }
+
+        // 3. No match → map symbols back to English letters
+        const symbolToLetter: Record<string, string> = {};
+        guttinAlphabet.forEach(({ letter, symbol }) => {
+          symbolToLetter[symbol] = letter;
+        });
+
+        const mappedWord = word
+          .split("")
+          .map((char) => symbolToLetter[char] || char)
+          .join("");
+
+        return mappedWord.toLowerCase();
+      });
+
+      const english = translatedWords.join(" ");
+
+      // ✅ only update English result
+      setEnglishText(text);
+      setGuttinRomanized(english);
+      setGuttinSymbols(text);
     }
-  }
+  };
 
   const handleEnglishChange = (value: string) => {
-    setEnglishText(value)
+    setEnglishText(value);
     if (translationDirection === "en-to-guttin") {
-      translateText(value, "en-to-guttin")
+      translateText(value, "en-to-guttin");
+    } else {
+      translateText(value, "guttin-to-en");
     }
-  }
+  };
 
   const swapLanguages = () => {
-    const newDirection = translationDirection === "en-to-guttin" ? "guttin-to-en" : "en-to-guttin"
-    setTranslationDirection(newDirection)
+    const newDirection =
+      translationDirection === "en-to-guttin" ? "guttin-to-en" : "en-to-guttin";
+    setTranslationDirection(newDirection);
+    setLanguage(translationDirection === "en-to-guttin" ? "gu" : "en");
 
     // Clear all fields when swapping
-    setEnglishText("")
-    setGuttinRomanized("")
-    setGuttinSymbols("")
-  }
+    setEnglishText("");
+    setGuttinRomanized("");
+    setGuttinSymbols("");
+  };
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-  }
+    navigator.clipboard.writeText(text);
+  };
 
   return (
     <section id="translator" className="py-16 px-4 sm:px-6 lg:px-8 bg-muted/30">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-foreground mb-4">Guttin Translator</h2>
+          <h2 className="text-4xl font-bold text-foreground mb-4">
+            Guttin Translator
+          </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto text-pretty">
-            Translate between English and Guttin using our growing dictionary of words and phrases.
+            Translate between English and Guttin using our growing dictionary of
+            words and phrases.
           </p>
         </div>
 
@@ -198,15 +310,28 @@ function GuttinTranslator() {
             <div className="flex items-center justify-center">
               <div className="flex items-center gap-4 bg-secondary/20 rounded-lg p-2">
                 <span
-                  className={`px-3 py-1 rounded ${translationDirection === "en-to-guttin" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+                  className={`px-3 py-1 rounded ${
+                    translationDirection === "en-to-guttin"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground"
+                  }`}
                 >
                   English
                 </span>
-                <Button variant="ghost" size="sm" onClick={swapLanguages} className="p-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={swapLanguages}
+                  className="p-2"
+                >
                   <ArrowLeftRight className="h-4 w-4" />
                 </Button>
                 <span
-                  className={`px-3 py-1 rounded ${translationDirection === "guttin-to-en" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+                  className={`px-3 py-1 rounded ${
+                    translationDirection === "guttin-to-en"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground"
+                  }`}
                 >
                   Guttin
                 </span>
@@ -218,10 +343,14 @@ function GuttinTranslator() {
               {/* English Input */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-foreground">English</label>
+                  <label className="text-sm font-medium text-foreground">
+                    {language === "en" ? "English" : "Guttin"}
+                  </label>
                 </div>
                 <Textarea
-                  placeholder="Enter English text to translate..."
+                  placeholder={`Enter ${
+                    language === "en" ? "English" : "Guttin"
+                  } text to translate...`}
                   value={englishText}
                   onChange={(e) => handleEnglishChange(e.target.value)}
                   className="min-h-[120px] resize-none"
@@ -231,12 +360,18 @@ function GuttinTranslator() {
               {/* Guttin Output */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-foreground">Guttin</label>
+                  <label className="text-sm font-medium text-foreground">
+                    {language === "en" ? "Guttin" : "English"}
+                  </label>
                   <div className="flex gap-2">
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => copyToClipboard(guttinSymbols)}
+                      onClick={() =>
+                        copyToClipboard(
+                          language === "en" ? guttinSymbols : guttinRomanized
+                        )
+                      }
                       disabled={!guttinSymbols}
                     >
                       <Copy className="h-4 w-4" />
@@ -246,7 +381,9 @@ function GuttinTranslator() {
 
                 {/* Romanized Version */}
                 <div className="bg-muted/50 rounded-md p-3 min-h-[60px] border">
-                  <div className="text-sm text-muted-foreground mb-1">Romanized:</div>
+                  <div className="text-sm text-muted-foreground mb-1">
+                    Romanized:
+                  </div>
                   <div className="font-mono text-foreground">
                     {guttinRomanized || "Translation will appear here..."}
                   </div>
@@ -254,7 +391,9 @@ function GuttinTranslator() {
 
                 {/* Symbols Version */}
                 <div className="bg-muted/50 rounded-md p-3 min-h-[60px] border">
-                  <div className="text-sm text-muted-foreground mb-1">Symbols:</div>
+                  <div className="text-sm text-muted-foreground mb-1">
+                    Symbols:
+                  </div>
                   <div className="font-mono text-2xl text-primary leading-relaxed break-words overflow-hidden">
                     {guttinSymbols || "ϻıϞ┬Σ Яı○∪Ϟ Ϟıϻꓐ○⎸Ϟ..."}
                   </div>
@@ -264,9 +403,18 @@ function GuttinTranslator() {
 
             {/* Quick Phrases */}
             <div className="border-t pt-6">
-              <h3 className="text-lg font-semibold mb-4 text-foreground">Quick Phrases</h3>
+              <h3 className="text-lg font-semibold mb-4 text-foreground">
+                Quick Phrases
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {["hello", "how are you", "thank you", "goodbye", "i am fine", "nice to meet you"].map((phrase) => (
+                {[
+                  "hello",
+                  "how are you",
+                  "thank you",
+                  "goodbye",
+                  "i am fine",
+                  "nice to meet you",
+                ].map((phrase) => (
                   <Button
                     key={phrase}
                     variant="outline"
@@ -276,7 +424,11 @@ function GuttinTranslator() {
                     <div>
                       <div className="font-medium capitalize">{phrase}</div>
                       <div className="text-sm text-muted-foreground font-mono">
-                        {guttinDictionary[phrase as keyof typeof guttinDictionary]?.symbols}
+                        {
+                          guttinDictionary[
+                            phrase as keyof typeof guttinDictionary
+                          ]?.symbols
+                        }
                       </div>
                     </div>
                   </Button>
@@ -293,19 +445,30 @@ function GuttinTranslator() {
               <span className="text-2xl font-mono text-primary">∂ıᐭ┬</span>
               Dictionary Preview
             </CardTitle>
-            <CardDescription>Browse some of the words available in our Guttin dictionary</CardDescription>
+            <CardDescription>
+              Browse some of the words available in our Guttin dictionary
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {Object.entries(guttinDictionary)
                 .slice(0, 12)
-                .map(([english, guttin]) => (
-                  <div key={english} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                .map(([english, guttin], index) => (
+                  <div
+                    key={`${english}-${index}`}
+                    className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
+                  >
                     <div>
-                      <div className="font-medium text-foreground capitalize">{english}</div>
-                      <div className="text-sm text-muted-foreground">{guttin.romanized}</div>
+                      <div className="font-medium text-foreground capitalize">
+                        {english}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {guttin.romanized}
+                      </div>
                     </div>
-                    <div className="text-xl font-mono text-primary">{guttin.symbols}</div>
+                    <div className="text-xl font-mono text-primary">
+                      {guttin.symbols}
+                    </div>
                   </div>
                 ))}
             </div>
@@ -313,53 +476,58 @@ function GuttinTranslator() {
         </Card>
       </div>
     </section>
-  )
+  );
 }
 
 function GuttinKeyboard() {
-  const [typedText, setTypedText] = useState("")
-  const [showRomanized, setShowRomanized] = useState(true)
+  const [typedText, setTypedText] = useState("");
+  const [showRomanized, setShowRomanized] = useState(true);
 
   const getSymbolForLetter = (letter: string): string => {
-    const found = guttinAlphabet.find((item) => item.letter === letter.toUpperCase())
-    return found ? found.symbol : letter
-  }
+    const found = guttinAlphabet.find(
+      (item) => item.letter === letter.toUpperCase()
+    );
+    return found ? found.symbol : letter;
+  };
 
   const addSymbol = (symbol: string) => {
-    setTypedText((prev) => prev + symbol)
-  }
+    setTypedText((prev) => prev + symbol);
+  };
 
   const addSpace = () => {
-    setTypedText((prev) => prev + " ")
-  }
+    setTypedText((prev) => prev + " ");
+  };
 
   const backspace = () => {
-    setTypedText((prev) => prev.slice(0, -1))
-  }
+    setTypedText((prev) => prev.slice(0, -1));
+  };
 
   const clearText = () => {
-    setTypedText("")
-  }
+    setTypedText("");
+  };
 
   const copyText = () => {
-    navigator.clipboard.writeText(typedText)
-  }
+    navigator.clipboard.writeText(typedText);
+  };
 
   const addCommonPhrase = (phrase: string) => {
     if (typedText && !typedText.endsWith(" ")) {
-      setTypedText((prev) => prev + " " + phrase)
+      setTypedText((prev) => prev + " " + phrase);
     } else {
-      setTypedText((prev) => prev + phrase)
+      setTypedText((prev) => prev + phrase);
     }
-  }
+  };
 
   return (
     <section id="keyboard" className="py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-foreground mb-4">Guttin Virtual Keyboard</h2>
+          <h2 className="text-4xl font-bold text-foreground mb-4">
+            Guttin Virtual Keyboard
+          </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto text-pretty">
-            Type in Guttin using our virtual keyboard. Click on the symbols to compose text in the ancient script.
+            Type in Guttin using our virtual keyboard. Click on the symbols to
+            compose text in the ancient script.
           </p>
         </div>
 
@@ -368,15 +536,31 @@ function GuttinKeyboard() {
             {/* Text Display Area */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-foreground">Your Guttin Text</label>
+                <label className="text-sm font-medium text-foreground">
+                  Your Guttin Text
+                </label>
                 <div className="flex gap-2">
-                  <Button variant="ghost" size="sm" onClick={() => setShowRomanized(!showRomanized)}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowRomanized(!showRomanized)}
+                  >
                     {showRomanized ? "Hide" : "Show"} Romanized
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={copyText} disabled={!typedText}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={copyText}
+                    disabled={!typedText}
+                  >
                     <Copy className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={clearText} disabled={!typedText}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearText}
+                    disabled={!typedText}
+                  >
                     Clear
                   </Button>
                 </div>
@@ -388,14 +572,18 @@ function GuttinKeyboard() {
                 </div>
                 {showRomanized && (
                   <div className="mt-2 pt-2 border-t border-border/50">
-                    <div className="text-sm text-muted-foreground mb-1">Romanized:</div>
+                    <div className="text-sm text-muted-foreground mb-1">
+                      Romanized:
+                    </div>
                     <div className="font-mono text-foreground overflow-hidden">
                       {typedText
                         .split("")
                         .map((char) => {
-                          if (char === " ") return " "
-                          const found = guttinAlphabet.find((item) => item.symbol === char)
-                          return found ? found.letter.toLowerCase() : char
+                          if (char === " ") return " ";
+                          const found = guttinAlphabet.find(
+                            (item) => item.symbol === char
+                          );
+                          return found ? found.letter.toLowerCase() : char;
                         })
                         .join("") || "type here..."}
                     </div>
@@ -406,7 +594,9 @@ function GuttinKeyboard() {
 
             {/* Virtual Keyboard */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-foreground">Virtual Keyboard</h3>
+              <h3 className="text-lg font-semibold text-foreground">
+                Virtual Keyboard
+              </h3>
 
               {/* Keyboard Rows */}
               <div className="space-y-2">
@@ -417,7 +607,7 @@ function GuttinKeyboard() {
                 ].map((row, rowIndex) => (
                   <div key={rowIndex} className="flex justify-center gap-1">
                     {row.map((letter) => {
-                      const symbol = getSymbolForLetter(letter)
+                      const symbol = getSymbolForLetter(letter);
                       return (
                         <Button
                           key={letter}
@@ -426,11 +616,15 @@ function GuttinKeyboard() {
                           onClick={() => addSymbol(symbol)}
                         >
                           <div className="flex flex-col items-center">
-                            <div className="text-primary text-xl leading-none">{symbol}</div>
-                            <div className="text-xs text-muted-foreground leading-none">{letter}</div>
+                            <div className="text-primary text-xl leading-none">
+                              {symbol}
+                            </div>
+                            <div className="text-xs text-muted-foreground leading-none">
+                              {letter}
+                            </div>
                           </div>
                         </Button>
-                      )
+                      );
                     })}
                   </div>
                 ))}
@@ -459,7 +653,9 @@ function GuttinKeyboard() {
 
             {/* Common Phrases Shortcuts */}
             <div className="border-t pt-6">
-              <h3 className="text-lg font-semibold mb-4 text-foreground">Quick Phrases</h3>
+              <h3 className="text-lg font-semibold mb-4 text-foreground">
+                Quick Phrases
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {[
                   { english: "hello", symbols: "⋉ʘ" },
@@ -479,8 +675,12 @@ function GuttinKeyboard() {
                     onClick={() => addCommonPhrase(phrase.symbols)}
                   >
                     <div className="w-full">
-                      <div className="font-mono text-primary text-lg">{phrase.symbols}</div>
-                      <div className="text-sm text-muted-foreground capitalize">{phrase.english}</div>
+                      <div className="font-mono text-primary text-lg">
+                        {phrase.symbols}
+                      </div>
+                      <div className="text-sm text-muted-foreground capitalize">
+                        {phrase.english}
+                      </div>
                     </div>
                   </Button>
                 ))}
@@ -489,19 +689,26 @@ function GuttinKeyboard() {
 
             {/* Keyboard Tips */}
             <div className="border-t pt-6">
-              <h3 className="text-lg font-semibold mb-4 text-foreground">Keyboard Tips</h3>
+              <h3 className="text-lg font-semibold mb-4 text-foreground">
+                Keyboard Tips
+              </h3>
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="bg-muted/30 rounded-lg p-4">
-                  <h4 className="font-medium text-foreground mb-2">Symbol Layout</h4>
+                  <h4 className="font-medium text-foreground mb-2">
+                    Symbol Layout
+                  </h4>
                   <p className="text-sm text-muted-foreground">
-                    The keyboard follows the QWERTY layout with Guttin symbols mapped to their corresponding English
-                    letters.
+                    The keyboard follows the QWERTY layout with Guttin symbols
+                    mapped to their corresponding English letters.
                   </p>
                 </div>
                 <div className="bg-muted/30 rounded-lg p-4">
-                  <h4 className="font-medium text-foreground mb-2">Quick Input</h4>
+                  <h4 className="font-medium text-foreground mb-2">
+                    Quick Input
+                  </h4>
                   <p className="text-sm text-muted-foreground">
-                    Use the quick phrase buttons to insert common expressions, or build words letter by letter.
+                    Use the quick phrase buttons to insert common expressions,
+                    or build words letter by letter.
                   </p>
                 </div>
               </div>
@@ -510,28 +717,31 @@ function GuttinKeyboard() {
         </Card>
       </div>
     </section>
-  )
+  );
 }
 
 function AlphabetShowcase() {
-  const [hoveredLetter, setHoveredLetter] = useState<string | null>(null)
+  const [hoveredLetter, setHoveredLetter] = useState<string | null>(null);
 
   return (
     <section id="alphabet" className="py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-foreground mb-4">The Guttin Alphabet</h2>
+          <h2 className="text-4xl font-bold text-foreground mb-4">
+            The Guttin Alphabet
+          </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto text-pretty">
-            Discover the 26 mystical symbols that form the foundation of the Guttin writing system. Each symbol carries
-            ancient meaning and otherworldly power.
+            Discover the 26 mystical symbols that form the foundation of the
+            Guttin writing system. Each symbol carries ancient meaning and
+            otherworldly power.
           </p>
         </div>
 
         {/* Alphabet Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4 mb-12">
-          {guttinAlphabet.map(({ letter, symbol }) => (
+          {guttinAlphabet.map(({ letter, symbol }, index) => (
             <Card
-              key={letter}
+              key={`${letter}-${index}`}
               className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 border-2 hover:border-primary/30"
               onMouseEnter={() => setHoveredLetter(letter)}
               onMouseLeave={() => setHoveredLetter(null)}
@@ -541,7 +751,9 @@ function AlphabetShowcase() {
                   <div className="text-4xl font-mono text-primary group-hover:text-accent transition-colors duration-300">
                     {symbol}
                   </div>
-                  <div className="text-lg font-semibold text-foreground">{letter}</div>
+                  <div className="text-lg font-semibold text-foreground">
+                    {letter}
+                  </div>
                   <div className="text-sm text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     {letter} → {symbol}
                   </div>
@@ -554,25 +766,39 @@ function AlphabetShowcase() {
         {/* Interactive Display */}
         <Card className="p-8 bg-card border-2">
           <CardHeader className="text-center pb-6">
-            <CardTitle className="text-2xl">Interactive Symbol Display</CardTitle>
+            <CardTitle className="text-2xl">
+              Interactive Symbol Display
+            </CardTitle>
             <CardDescription>
-              Hover over letters above to see them highlighted, or click on any symbol to learn more
+              Hover over letters above to see them highlighted, or click on any
+              symbol to learn more
             </CardDescription>
           </CardHeader>
           <CardContent>
             {hoveredLetter ? (
               <div className="text-center space-y-4">
                 <div className="text-8xl font-mono text-primary">
-                  {guttinAlphabet.find((item) => item.letter === hoveredLetter)?.symbol}
+                  {
+                    guttinAlphabet.find((item) => item.letter === hoveredLetter)
+                      ?.symbol
+                  }
                 </div>
-                <div className="text-2xl font-bold text-foreground">Letter: {hoveredLetter}</div>
+                <div className="text-2xl font-bold text-foreground">
+                  Letter: {hoveredLetter}
+                </div>
                 <div className="text-lg text-muted-foreground">
-                  Symbol: {guttinAlphabet.find((item) => item.letter === hoveredLetter)?.symbol}
+                  Symbol:{" "}
+                  {
+                    guttinAlphabet.find((item) => item.letter === hoveredLetter)
+                      ?.symbol
+                  }
                 </div>
               </div>
             ) : (
               <div className="text-center space-y-4 py-8">
-                <div className="text-6xl font-mono text-muted-foreground/50">ʘꓐᐭ∂Σ</div>
+                <div className="text-6xl font-mono text-muted-foreground/50">
+                  ʘꓐᐭ∂Σ
+                </div>
                 <div className="text-lg text-muted-foreground">
                   Hover over any letter above to see it displayed here
                 </div>
@@ -592,8 +818,10 @@ function AlphabetShowcase() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Each Guttin symbol draws inspiration from ancient geometric forms and mystical patterns. The symbols are
-                designed to be both visually striking and functionally distinct for clear communication.
+                Each Guttin symbol draws inspiration from ancient geometric
+                forms and mystical patterns. The symbols are designed to be both
+                visually striking and functionally distinct for clear
+                communication.
               </p>
             </CardContent>
           </Card>
@@ -607,19 +835,22 @@ function AlphabetShowcase() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Guttin is written from left to right, similar to English. The symbols can be written in both uppercase
-                and lowercase forms, though the distinction is primarily stylistic.
+                Guttin is written from left to right, similar to English. The
+                symbols can be written in both uppercase and lowercase forms,
+                though the distinction is primarily stylistic.
               </p>
             </CardContent>
           </Card>
         </div>
       </div>
     </section>
-  )
+  );
 }
 
 function GuttinIntroduction() {
-  const [activeTab, setActiveTab] = useState<"overview" | "grammar" | "examples">("overview")
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "grammar" | "examples"
+  >("overview");
 
   const grammarExamples = [
     {
@@ -664,15 +895,21 @@ function GuttinIntroduction() {
       symbols: "ϻı Ϟ∪ ∂○ʘ",
       explanation: "Add 'su' before verb for future tense",
     },
-  ]
+  ];
 
   return (
-    <section id="introduction" className="py-16 px-4 sm:px-6 lg:px-8 bg-muted/30">
+    <section
+      id="introduction"
+      className="py-16 px-4 sm:px-6 lg:px-8 bg-muted/30"
+    >
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-foreground mb-4">Learn Guttin</h2>
+          <h2 className="text-4xl font-bold text-foreground mb-4">
+            Learn Guttin
+          </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto text-pretty">
-            Master the ancient language of Guttin through comprehensive lessons on grammar, structure, and usage.
+            Master the ancient language of Guttin through comprehensive lessons
+            on grammar, structure, and usage.
           </p>
         </div>
 
@@ -712,27 +949,35 @@ function GuttinIntroduction() {
             <Card className="p-6 border-2">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <span className="text-2xl font-mono text-primary">Ϭ∪┬┬ʘﬡ</span>
+                  <span className="text-2xl font-mono text-primary">
+                    Ϭ∪┬┬ʘﬡ
+                  </span>
                   About the Guttin Language
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="prose prose-lg max-w-none text-muted-foreground">
                   <p>
-                    Guttin is a constructed language that blends ancient mysticism with modern linguistic principles.
-                    Born from otherworldly inspiration, it features a unique writing system of 26 symbols that
-                    correspond to the English alphabet, each carrying deep symbolic meaning.
+                    Guttin is a constructed language that blends ancient
+                    mysticism with modern linguistic principles. Born from
+                    otherworldly inspiration, it features a unique writing
+                    system of 26 symbols that correspond to the English
+                    alphabet, each carrying deep symbolic meaning.
                   </p>
                   <p>
-                    The language follows familiar grammatical patterns while maintaining its own distinct character.
-                    With Subject-Verb-Object word order similar to English, Guttin is accessible to learners while
-                    offering the intrigue of an entirely new symbolic system.
+                    The language follows familiar grammatical patterns while
+                    maintaining its own distinct character. With
+                    Subject-Verb-Object word order similar to English, Guttin is
+                    accessible to learners while offering the intrigue of an
+                    entirely new symbolic system.
                   </p>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="bg-muted/30 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-foreground mb-3">Key Features</h3>
+                    <h3 className="text-lg font-semibold text-foreground mb-3">
+                      Key Features
+                    </h3>
                     <ul className="space-y-2 text-muted-foreground">
                       <li>• 26 unique mystical symbols</li>
                       <li>• SVO word order (like English)</li>
@@ -742,7 +987,9 @@ function GuttinIntroduction() {
                     </ul>
                   </div>
                   <div className="bg-muted/30 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-foreground mb-3">Learning Path</h3>
+                    <h3 className="text-lg font-semibold text-foreground mb-3">
+                      Learning Path
+                    </h3>
                     <ul className="space-y-2 text-muted-foreground">
                       <li>• Start with the alphabet symbols</li>
                       <li>• Learn basic vocabulary</li>
@@ -759,14 +1006,17 @@ function GuttinIntroduction() {
               <Card className="p-6">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <span className="text-2xl font-mono text-primary">ϻıϞ┬ıᐭ</span>
+                    <span className="text-2xl font-mono text-primary">
+                      ϻıϞ┬ıᐭ
+                    </span>
                     Mystical Origins
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">
-                    Each symbol in Guttin draws from ancient geometric patterns and otherworldly designs, creating a
-                    writing system that feels both familiar and alien.
+                    Each symbol in Guttin draws from ancient geometric patterns
+                    and otherworldly designs, creating a writing system that
+                    feels both familiar and alien.
                   </p>
                 </CardContent>
               </Card>
@@ -774,14 +1024,17 @@ function GuttinIntroduction() {
               <Card className="p-6">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <span className="text-2xl font-mono text-primary">⎸○Ϭıᐭ</span>
+                    <span className="text-2xl font-mono text-primary">
+                      ⎸○Ϭıᐭ
+                    </span>
                     Logical Structure
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">
-                    Despite its mystical appearance, Guttin follows clear grammatical rules that make it learnable and
-                    practical for communication.
+                    Despite its mystical appearance, Guttin follows clear
+                    grammatical rules that make it learnable and practical for
+                    communication.
                   </p>
                 </CardContent>
               </Card>
@@ -789,14 +1042,17 @@ function GuttinIntroduction() {
               <Card className="p-6">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <span className="text-2xl font-mono text-primary">Σ√○⎸∪┬</span>
+                    <span className="text-2xl font-mono text-primary">
+                      Σ√○⎸∪┬
+                    </span>
                     Ever-Growing
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">
-                    Guttin is a living language, continuously expanding its vocabulary and refining its grammar as more
-                    speakers join the community.
+                    Guttin is a living language, continuously expanding its
+                    vocabulary and refining its grammar as more speakers join
+                    the community.
                   </p>
                 </CardContent>
               </Card>
@@ -809,28 +1065,46 @@ function GuttinIntroduction() {
             <Card className="p-6 border-2">
               <CardHeader>
                 <CardTitle>Essential Grammar Rules</CardTitle>
-                <CardDescription>Master these fundamental patterns to speak Guttin fluently</CardDescription>
+                <CardDescription>
+                  Master these fundamental patterns to speak Guttin fluently
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-6">
                   {grammarExamples.map((example, index) => (
                     <div key={index} className="bg-muted/30 rounded-lg p-6">
-                      <h3 className="text-lg font-semibold text-foreground mb-4">{example.title}</h3>
+                      <h3 className="text-lg font-semibold text-foreground mb-4">
+                        {example.title}
+                      </h3>
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-muted-foreground">English:</span>
-                          <span className="text-foreground">{example.english}</span>
+                          <span className="text-sm font-medium text-muted-foreground">
+                            English:
+                          </span>
+                          <span className="text-foreground">
+                            {example.english}
+                          </span>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-muted-foreground">Romanized:</span>
-                          <span className="font-mono text-foreground">{example.romanized}</span>
+                          <span className="text-sm font-medium text-muted-foreground">
+                            Romanized:
+                          </span>
+                          <span className="font-mono text-foreground">
+                            {example.romanized}
+                          </span>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-muted-foreground">Guttin:</span>
-                          <span className="font-mono text-2xl text-primary">{example.symbols}</span>
+                          <span className="text-sm font-medium text-muted-foreground">
+                            Guttin:
+                          </span>
+                          <span className="font-mono text-2xl text-primary">
+                            {example.symbols}
+                          </span>
                         </div>
                         <div className="pt-2 border-t border-border/50">
-                          <p className="text-sm text-muted-foreground italic">{example.explanation}</p>
+                          <p className="text-sm text-muted-foreground italic">
+                            {example.explanation}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -846,22 +1120,38 @@ function GuttinIntroduction() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <h4 className="font-medium text-foreground">Present Tense</h4>
-                    <p className="text-sm text-muted-foreground">No marker needed</p>
+                    <h4 className="font-medium text-foreground">
+                      Present Tense
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      No marker needed
+                    </p>
                     <div className="font-mono text-primary">ϻı ∂○ʘ</div>
-                    <div className="text-sm text-muted-foreground">mi doa (I eat)</div>
+                    <div className="text-sm text-muted-foreground">
+                      mi doa (I eat)
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <h4 className="font-medium text-foreground">Past Tense</h4>
-                    <p className="text-sm text-muted-foreground">Add -et suffix</p>
+                    <p className="text-sm text-muted-foreground">
+                      Add -et suffix
+                    </p>
                     <div className="font-mono text-primary">ϻı ∂○ʘΣ┬</div>
-                    <div className="text-sm text-muted-foreground">mi doaet (I ate)</div>
+                    <div className="text-sm text-muted-foreground">
+                      mi doaet (I ate)
+                    </div>
                   </div>
                   <div className="space-y-2">
-                    <h4 className="font-medium text-foreground">Future Tense</h4>
-                    <p className="text-sm text-muted-foreground">Add su before verb</p>
+                    <h4 className="font-medium text-foreground">
+                      Future Tense
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      Add su before verb
+                    </p>
                     <div className="font-mono text-primary">ϻı Ϟ∪ ∂○ʘ</div>
-                    <div className="text-sm text-muted-foreground">mi su doa (I will eat)</div>
+                    <div className="text-sm text-muted-foreground">
+                      mi su doa (I will eat)
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -873,22 +1163,34 @@ function GuttinIntroduction() {
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <h4 className="font-medium text-foreground">Plurals</h4>
-                    <p className="text-sm text-muted-foreground">Add -im suffix</p>
+                    <p className="text-sm text-muted-foreground">
+                      Add -im suffix
+                    </p>
                     <div className="font-mono text-primary">⎸ʘ → ⎸ʘıϻ</div>
-                    <div className="text-sm text-muted-foreground">la → laim (friend → friends)</div>
+                    <div className="text-sm text-muted-foreground">
+                      la → laim (friend → friends)
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <h4 className="font-medium text-foreground">Questions</h4>
-                    <p className="text-sm text-muted-foreground">Start with ke</p>
+                    <p className="text-sm text-muted-foreground">
+                      Start with ke
+                    </p>
                     <div className="font-mono text-primary">⋉Σ ┬∪ ○ﬡϻʘ?</div>
-                    <div className="text-sm text-muted-foreground">ke tu noma?</div>
+                    <div className="text-sm text-muted-foreground">
+                      ke tu noma?
+                    </div>
                     <div className="text-foreground">What is your name?</div>
                   </div>
                   <div className="space-y-2">
                     <h4 className="font-medium text-foreground">Negation</h4>
-                    <p className="text-sm text-muted-foreground">Add na before verb</p>
+                    <p className="text-sm text-muted-foreground">
+                      Add na before verb
+                    </p>
                     <div className="font-mono text-primary">ϻı ﬡʘ ∂○ʘ</div>
-                    <div className="text-sm text-muted-foreground">mi na doa (I do not eat)</div>
+                    <div className="text-sm text-muted-foreground">
+                      mi na doa (I do not eat)
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -901,69 +1203,129 @@ function GuttinIntroduction() {
             <Card className="p-6 border-2">
               <CardHeader>
                 <CardTitle>Common Conversations</CardTitle>
-                <CardDescription>Practice with these everyday dialogues in Guttin</CardDescription>
+                <CardDescription>
+                  Practice with these everyday dialogues in Guttin
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-8">
                   <div className="bg-muted/30 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-foreground mb-4">Meeting Someone New</h3>
+                    <h3 className="text-lg font-semibold text-foreground mb-4">
+                      Meeting Someone New
+                    </h3>
                     <div className="space-y-4">
                       <div className="flex flex-col space-y-2">
-                        <div className="font-mono text-2xl text-primary">⋉ʘ! ⋉Σ ┬∪ ϻ○?</div>
-                        <div className="text-sm text-muted-foreground">ka! ke tu noma?</div>
-                        <div className="text-foreground">Hello! What is your name?</div>
+                        <div className="font-mono text-2xl text-primary">
+                          ⋉ʘ! ⋉Σ ┬∪ ϻ○?
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          ka! ke tu noma?
+                        </div>
+                        <div className="text-foreground">
+                          Hello! What is your name?
+                        </div>
                       </div>
                       <div className="flex flex-col space-y-2">
-                        <div className="font-mono text-2xl text-primary">ϻı ○ﬡϻʘ ʘﬡﬡʘ. ⋉Σ ┬∪ ϻ○?</div>
-                        <div className="text-sm text-muted-foreground">mi noma anna. ke tu noma?</div>
-                        <div className="text-foreground">My name is Anna. What is your name?</div>
+                        <div className="font-mono text-2xl text-primary">
+                          ϻı ○ﬡϻʘ ʘﬡﬡʘ. ⋉Σ ┬∪ ϻ○?
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          mi noma anna. ke tu noma?
+                        </div>
+                        <div className="text-foreground">
+                          My name is Anna. What is your name?
+                        </div>
                       </div>
                       <div className="flex flex-col space-y-2">
-                        <div className="font-mono text-2xl text-primary">ϻı ○ﬡϻʘ ϻʘЯ⋉. ϻ○ ⎸ʘ ┬∪!</div>
-                        <div className="text-sm text-muted-foreground">mi noma mark. mo la tu!</div>
-                        <div className="text-foreground">My name is Mark. Nice to meet you!</div>
+                        <div className="font-mono text-2xl text-primary">
+                          ϻı ○ﬡϻʘ ϻʘЯ⋉. ϻ○ ⎸ʘ ┬∪!
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          mi noma mark. mo la tu!
+                        </div>
+                        <div className="text-foreground">
+                          My name is Mark. Nice to meet you!
+                        </div>
                       </div>
                     </div>
                   </div>
 
                   <div className="bg-muted/30 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-foreground mb-4">Daily Check-in</h3>
+                    <h3 className="text-lg font-semibold text-foreground mb-4">
+                      Daily Check-in
+                    </h3>
                     <div className="space-y-4">
                       <div className="flex flex-col space-y-2">
-                        <div className="font-mono text-2xl text-primary">⋉Σ ┬∪ ϻ○?</div>
-                        <div className="text-sm text-muted-foreground">ke tu mo?</div>
+                        <div className="font-mono text-2xl text-primary">
+                          ⋉Σ ┬∪ ϻ○?
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          ke tu mo?
+                        </div>
                         <div className="text-foreground">How are you?</div>
                       </div>
                       <div className="flex flex-col space-y-2">
-                        <div className="font-mono text-2xl text-primary">ϻı ϻ○. Яʘ ┬∪!</div>
-                        <div className="text-sm text-muted-foreground">mi mo. ra tu!</div>
-                        <div className="text-foreground">I am fine. Thank you!</div>
+                        <div className="font-mono text-2xl text-primary">
+                          ϻı ϻ○. Яʘ ┬∪!
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          mi mo. ra tu!
+                        </div>
+                        <div className="text-foreground">
+                          I am fine. Thank you!
+                        </div>
                       </div>
                       <div className="flex flex-col space-y-2">
-                        <div className="font-mono text-2xl text-primary">ϻı ʘ⎸Ϟ○ ϻ○. Яʘ ┬∪!</div>
-                        <div className="text-sm text-muted-foreground">mi also mo. ra tu!</div>
-                        <div className="text-foreground">I am also fine. Thank you!</div>
+                        <div className="font-mono text-2xl text-primary">
+                          ϻı ʘ⎸Ϟ○ ϻ○. Яʘ ┬∪!
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          mi also mo. ra tu!
+                        </div>
+                        <div className="text-foreground">
+                          I am also fine. Thank you!
+                        </div>
                       </div>
                     </div>
                   </div>
 
                   <div className="bg-muted/30 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-foreground mb-4">Asking for Help</h3>
+                    <h3 className="text-lg font-semibold text-foreground mb-4">
+                      Asking for Help
+                    </h3>
                     <div className="space-y-4">
                       <div className="flex flex-col space-y-2">
-                        <div className="font-mono text-2xl text-primary">ϻı ﬡʘ Ϟı. ┬∪ ║Σ⎸Ϸ ϻı?</div>
-                        <div className="text-sm text-muted-foreground">mi na si. tu help mi?</div>
-                        <div className="text-foreground">I don't understand. Can you help me?</div>
+                        <div className="font-mono text-2xl text-primary">
+                          ϻı ﬡʘ Ϟı. ┬∪ ║Σ⎸Ϸ ϻı?
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          mi na si. tu help mi?
+                        </div>
+                        <div className="text-foreground">
+                          I don't understand. Can you help me?
+                        </div>
                       </div>
                       <div className="flex flex-col space-y-2">
-                        <div className="font-mono text-2xl text-primary">⎸○! ϻı ║Σ⎸Ϸ ┬∪.</div>
-                        <div className="text-sm text-muted-foreground">lo! mi help tu.</div>
-                        <div className="text-foreground">Yes! I will help you.</div>
+                        <div className="font-mono text-2xl text-primary">
+                          ⎸○! ϻı ║Σ⎸Ϸ ┬∪.
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          lo! mi help tu.
+                        </div>
+                        <div className="text-foreground">
+                          Yes! I will help you.
+                        </div>
                       </div>
                       <div className="flex flex-col space-y-2">
-                        <div className="font-mono text-2xl text-primary">Яʘ ┬∪! ┬∪ ϻ○ ⎸ʘ.</div>
-                        <div className="text-sm text-muted-foreground">ra tu! tu mo la.</div>
-                        <div className="text-foreground">Thank you! You are a good friend.</div>
+                        <div className="font-mono text-2xl text-primary">
+                          Яʘ ┬∪! ┬∪ ϻ○ ⎸ʘ.
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          ra tu! tu mo la.
+                        </div>
+                        <div className="text-foreground">
+                          Thank you! You are a good friend.
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -985,10 +1347,17 @@ function GuttinIntroduction() {
                       { num: "4", rom: "fura", sym: "ƒ∪Яʘ" },
                       { num: "5", rom: "fiva", sym: "ƒı√ʘ" },
                     ].map((item) => (
-                      <div key={item.num} className="flex items-center justify-between p-2 bg-muted/20 rounded">
+                      <div
+                        key={item.num}
+                        className="flex items-center justify-between p-2 bg-muted/20 rounded"
+                      >
                         <span className="text-foreground">{item.num}</span>
-                        <span className="font-mono text-muted-foreground">{item.rom}</span>
-                        <span className="font-mono text-xl text-primary">{item.sym}</span>
+                        <span className="font-mono text-muted-foreground">
+                          {item.rom}
+                        </span>
+                        <span className="font-mono text-xl text-primary">
+                          {item.sym}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -1008,10 +1377,19 @@ function GuttinIntroduction() {
                       { eng: "sister", rom: "sista", sym: "ϞıϞ┬ʘ" },
                       { eng: "friend", rom: "la", sym: "⎸ʘ" },
                     ].map((item) => (
-                      <div key={item.eng} className="flex items-center justify-between p-2 bg-muted/20 rounded">
-                        <span className="text-foreground capitalize">{item.eng}</span>
-                        <span className="font-mono text-muted-foreground">{item.rom}</span>
-                        <span className="font-mono text-xl text-primary">{item.sym}</span>
+                      <div
+                        key={item.eng}
+                        className="flex items-center justify-between p-2 bg-muted/20 rounded"
+                      >
+                        <span className="text-foreground capitalize">
+                          {item.eng}
+                        </span>
+                        <span className="font-mono text-muted-foreground">
+                          {item.rom}
+                        </span>
+                        <span className="font-mono text-xl text-primary">
+                          {item.sym}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -1022,7 +1400,7 @@ function GuttinIntroduction() {
         )}
       </div>
     </section>
-  )
+  );
 }
 
 export default function HomePage() {
@@ -1034,26 +1412,42 @@ export default function HomePage() {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-2">
               {/* Mobile: Show Guttin symbols only */}
-              <div className="sm:hidden text-lg font-bold text-primary font-mono">Ϭ∪┬┬ıﬡ ⎸ıﬡϬ√ʘ</div>
+              <div className="sm:hidden text-lg font-bold text-primary font-mono">
+                Ϭ∪┬┬ıﬡ ⎸ıﬡϬ√ʘ
+              </div>
               {/* Desktop: Show both symbols and English */}
               <div className="hidden sm:flex items-center space-x-2">
                 <div className="text-2xl font-bold text-primary">
                   <span className="font-mono">Ϭ∪┬┬ʘﬡ</span>
                 </div>
-                <span className="text-sm text-muted-foreground hidden md:inline">Guttin Language</span>
+                <span className="text-sm text-muted-foreground hidden md:inline">
+                  Guttin Language
+                </span>
               </div>
             </div>
             <div className="hidden md:flex items-center space-x-6">
-              <a href="#alphabet" className="text-muted-foreground hover:text-foreground transition-colors">
+              <a
+                href="#alphabet"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
                 Alphabet
               </a>
-              <a href="#translator" className="text-muted-foreground hover:text-foreground transition-colors">
+              <a
+                href="#translator"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
                 Translator
               </a>
-              <a href="#keyboard" className="text-muted-foreground hover:text-foreground transition-colors">
+              <a
+                href="#keyboard"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
                 Keyboard
               </a>
-              <a href="#introduction" className="text-muted-foreground hover:text-foreground transition-colors">
+              <a
+                href="#introduction"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
                 Learn
               </a>
               <ThemeToggle />
@@ -1073,8 +1467,9 @@ export default function HomePage() {
               Welcome to <span className="text-primary font-mono">Ϭ∪┬┬ʘﬡ</span>
             </h1>
             <p className="text-xl text-muted-foreground mb-8 text-pretty max-w-2xl mx-auto">
-              Discover the mysteries of Guttin, an ancient language reborn. Explore its unique symbols, learn its
-              grammar, and unlock the secrets of this otherworldly tongue.
+              Discover the mysteries of Guttin, an ancient language reborn.
+              Explore its unique symbols, learn its grammar, and unlock the
+              secrets of this otherworldly tongue.
             </p>
           </div>
 
@@ -1082,7 +1477,11 @@ export default function HomePage() {
             <Button size="lg" className="text-lg px-8">
               <a href="#introduction">Start Learning</a>
             </Button>
-            <Button variant="outline" size="lg" className="text-lg px-8 bg-transparent">
+            <Button
+              variant="outline"
+              size="lg"
+              className="text-lg px-8 bg-transparent"
+            >
               <a href="#alphabet">Explore Alphabet</a>
             </Button>
           </div>
@@ -1090,8 +1489,13 @@ export default function HomePage() {
           {/* Featured Symbols */}
           <div className="grid grid-cols-3 md:grid-cols-6 gap-4 max-w-md mx-auto">
             {["ʘ", "ꓐ", "ᐭ", "∂", "Σ", "ƒ"].map((symbol, index) => (
-              <Card key={index} className="p-4 hover:shadow-lg transition-shadow border-2 hover:border-primary/20">
-                <div className="text-2xl font-mono text-center text-primary">{symbol}</div>
+              <Card
+                key={index}
+                className="p-4 hover:shadow-lg transition-shadow border-2 hover:border-primary/20"
+              >
+                <div className="text-2xl font-mono text-center text-primary">
+                  {symbol}
+                </div>
               </Card>
             ))}
           </div>
@@ -1117,7 +1521,10 @@ export default function HomePage() {
                   <span className="text-2xl font-mono text-primary">ʘꓐᐭ</span>
                   Alphabet
                 </CardTitle>
-                <CardDescription>Explore the 26 unique symbols that form the Guttin writing system</CardDescription>
+                <CardDescription>
+                  Explore the 26 unique symbols that form the Guttin writing
+                  system
+                </CardDescription>
               </CardHeader>
             </Card>
 
@@ -1127,7 +1534,9 @@ export default function HomePage() {
                   <span className="text-2xl font-mono text-primary">∂○ʘ</span>
                   Translator
                 </CardTitle>
-                <CardDescription>Translate between English and Guttin with our basic dictionary</CardDescription>
+                <CardDescription>
+                  Translate between English and Guttin with our basic dictionary
+                </CardDescription>
               </CardHeader>
             </Card>
 
@@ -1137,7 +1546,9 @@ export default function HomePage() {
                   <span className="text-2xl font-mono text-primary">⋉Σ┬</span>
                   Keyboard
                 </CardTitle>
-                <CardDescription>Type in Guttin using our virtual keyboard interface</CardDescription>
+                <CardDescription>
+                  Type in Guttin using our virtual keyboard interface
+                </CardDescription>
               </CardHeader>
             </Card>
 
@@ -1147,7 +1558,10 @@ export default function HomePage() {
                   <span className="text-2xl font-mono text-primary">ﬡ○ʘ</span>
                   Learn
                 </CardTitle>
-                <CardDescription>Discover the grammar rules and structure of the Guttin language</CardDescription>
+                <CardDescription>
+                  Discover the grammar rules and structure of the Guttin
+                  language
+                </CardDescription>
               </CardHeader>
             </Card>
           </div>
@@ -1157,13 +1571,23 @@ export default function HomePage() {
       {/* Sample Text */}
       <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-8 text-foreground">Experience Guttin</h2>
+          <h2 className="text-3xl font-bold mb-8 text-foreground">
+            Experience Guttin
+          </h2>
           <Card className="p-8 bg-card border-2">
             <div className="space-y-4">
-              <div className="text-3xl font-mono text-primary leading-relaxed">⋉ʘ! ⋉Σ ┬∪ ϻ○?</div>
-              <div className="text-lg text-muted-foreground">"Hello! How are you?"</div>
-              <div className="text-3xl font-mono text-primary leading-relaxed">ϻı ϻ○. Яʘ ┬∪!</div>
-              <div className="text-lg text-muted-foreground">"I am fine. Thank you!"</div>
+              <div className="text-3xl font-mono text-primary leading-relaxed">
+                ⋉ʘ! ⋉Σ ┬∪ ϻ○?
+              </div>
+              <div className="text-lg text-muted-foreground">
+                "Hello! How are you?"
+              </div>
+              <div className="text-3xl font-mono text-primary leading-relaxed">
+                ϻı ϻ○. Яʘ ┬∪!
+              </div>
+              <div className="text-lg text-muted-foreground">
+                "I am fine. Thank you!"
+              </div>
             </div>
           </Card>
         </div>
@@ -1173,10 +1597,11 @@ export default function HomePage() {
       <footer className="border-t border-border py-8 px-4 sm:px-6 lg:px-8 bg-card/50">
         <div className="max-w-6xl mx-auto text-center">
           <p className="text-muted-foreground">
-            <span className="font-mono text-primary">Ϭ∪┬┬ʘﬡ</span> - A constructed language in development
+            <span className="font-mono text-primary">Ϭ∪┬┬ʘﬡ</span> - A
+            constructed language in development
           </p>
         </div>
       </footer>
     </div>
-  )
+  );
 }
