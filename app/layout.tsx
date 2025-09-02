@@ -6,7 +6,10 @@ export const metadata: Metadata = {
   title: "Guttin Language - Ancient Mysteries Reborn",
   description:
     "Discover the Guttin language - explore its unique symbols, learn grammar, and unlock otherworldly communication",
-  generator: "v0.app",
+  generator: "MSS",
+  icons: {
+    icon: "/favicon.png", // stored in public/
+  },
 }
 
 export default function RootLayout({
